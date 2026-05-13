@@ -31,7 +31,6 @@ const navItems = ["About", "Menu", "Meetings", "Ambiance", "Location"];
 
 const visualAssets = {
   hero: "/assets/qamar-hero.png",
-  menu: "/assets/qamar-menu.png",
   meeting: "/assets/qamar-meeting.png",
   ambiance: "/assets/qamar-ambiance.png",
   detail: "/assets/qamar-detail.png",
@@ -543,13 +542,6 @@ function Hero() {
           </motion.div>
         </motion.div>
       </div>
-
-      {/* <div className="absolute bottom-8 left-1/2 hidden -translate-x-1/2 text-center text-[10px] uppercase tracking-[0.38em] text-stone-400 md:block">
-        Scroll
-        <span className="mx-auto mt-3 block h-12 w-px overflow-hidden bg-white/10">
-          <span className="scroll-line block h-5 w-px bg-amber-200" />
-        </span>
-      </div> */}
     </section>
   );
 }
