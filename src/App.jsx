@@ -1,8 +1,4 @@
-import { useEffect, useRef, useState } from "react";
-import { motion, useMotionValue, useSpring } from "framer-motion";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import Lenis from "lenis";
+import { useEffect, useState } from "react";
 import {
   ArrowRight,
   Building2,
@@ -24,8 +20,6 @@ import {
   X,
 } from "lucide-react";
 import "./App.css";
-
-gsap.registerPlugin(ScrollTrigger);
 
 const navItems = ["About", "Menu", "Meetings", "Ambiance", "Location"];
 
@@ -127,31 +121,49 @@ const testimonials = [
   },
 ];
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 36 },
-  visible: { opacity: 1, y: 0 },
-};
-
 function useLenisScroll() {
   useEffect(() => {
-    const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
-    const lenis = new Lenis({
-      duration: coarsePointer ? 0.95 : 1.35,
-      easing: (t) => Math.min(1, 1.001 - 2 ** (-10 * t)),
-      smoothWheel: true,
-      wheelMultiplier: 0.88,
-      touchMultiplier: coarsePointer ? 1.05 : 1.35,
-    });
+    let lenis;
+    let gsapInstance;
+    let scrollTrigger;
+    let raf;
+    let cancelled = false;
 
-    const raf = (time) => lenis.raf(time * 1000);
+    const setup = async () => {
+      const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
 
-    lenis.on("scroll", ScrollTrigger.update);
-    gsap.ticker.add(raf);
-    gsap.ticker.lagSmoothing(0);
+      if (coarsePointer) return;
 
+      const [{ default: Lenis }, { default: gsap }, { ScrollTrigger }] =
+        await Promise.all([
+          import("lenis"),
+          import("gsap"),
+          import("gsap/ScrollTrigger"),
+        ]);
+
+      if (cancelled) return;
+
+      gsap.registerPlugin(ScrollTrigger);
+      gsapInstance = gsap;
+      scrollTrigger = ScrollTrigger;
+      lenis = new Lenis({
+        duration: 1.15,
+        easing: (t) => Math.min(1, 1.001 - 2 ** (-10 * t)),
+        smoothWheel: true,
+        wheelMultiplier: 0.88,
+      });
+
+      raf = (time) => lenis.raf(time * 1000);
+      lenis.on("scroll", scrollTrigger.update);
+      gsap.ticker.add(raf);
+      gsap.ticker.lagSmoothing(0);
+    };
+
+    window.setTimeout(setup, 600);
     return () => {
-      lenis.destroy();
-      gsap.ticker.remove(raf);
+      cancelled = true;
+      if (lenis) lenis.destroy();
+      if (gsapInstance && raf) gsapInstance.ticker.remove(raf);
     };
   }, []);
 }
@@ -161,9 +173,22 @@ function useGsapStorytelling() {
     const reduceMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
-    if (reduceMotion) return;
+    const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
+    if (reduceMotion || coarsePointer) return;
 
-    const context = gsap.context(() => {
+    let context;
+    let cancelled = false;
+
+    const setup = async () => {
+      const [{ default: gsap }, { ScrollTrigger }] = await Promise.all([
+        import("gsap"),
+        import("gsap/ScrollTrigger"),
+      ]);
+
+      if (cancelled) return;
+
+      gsap.registerPlugin(ScrollTrigger);
+      context = gsap.context(() => {
       gsap.utils.toArray(".reveal-line").forEach((element) => {
         gsap.fromTo(
           element,
@@ -249,8 +274,14 @@ function useGsapStorytelling() {
         },
       });
     });
+    };
 
-    return () => context.revert();
+    window.setTimeout(setup, 500);
+
+    return () => {
+      cancelled = true;
+      if (context) context.revert();
+    };
   }, []);
 }
 
@@ -267,45 +298,6 @@ function useScrollState() {
   return scrolled;
 }
 
-function Loader() {
-  const [hidden, setHidden] = useState(false);
-
-  useEffect(() => {
-    const timeout = window.setTimeout(() => setHidden(true), 1900);
-    return () => window.clearTimeout(timeout);
-  }, []);
-
-  return (
-    <motion.div
-      className="fixed inset-0 z-[100] grid place-items-center bg-[#080706]"
-      initial={{ opacity: 1 }}
-      animate={{
-        opacity: hidden ? 0 : 1,
-        pointerEvents: hidden ? "none" : "auto",
-      }}
-      transition={{ duration: 0.7, ease: "easeInOut" }}
-    >
-      <div className="absolute inset-0 arabic-pattern opacity-20" />
-      <motion.div
-        className="relative text-center"
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.9, ease: "easeOut" }}
-      >
-        <div className="mx-auto mb-7 grid h-16 w-16 place-items-center rounded-full border border-amber-200/40 bg-amber-200/10">
-          <Moon className="h-8 w-8 text-amber-200" />
-        </div>
-        <p className="gold-shimmer font-serif text-5xl text-white md:text-7xl">
-          Qamar Noir
-        </p>
-        <p className="loader-subtitle mt-4 text-xs uppercase tracking-[0.45em] text-stone-400">
-          Private Dubai Majlis
-        </p>
-      </motion.div>
-    </motion.div>
-  );
-}
-
 function AtmosphericLayers() {
   return (
     <>
@@ -316,52 +308,20 @@ function AtmosphericLayers() {
 }
 
 function MagneticButton({ href, children, variant = "gold" }) {
-  const ref = useRef(null);
-  const x = useMotionValue(0);
-  const y = useMotionValue(0);
-  const springX = useSpring(x, { stiffness: 220, damping: 18, mass: 0.35 });
-  const springY = useSpring(y, { stiffness: 220, damping: 18, mass: 0.35 });
-
-  function handleMove(event) {
-    const reduceMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)",
-    ).matches;
-    if (reduceMotion || !ref.current) return;
-    const rect = ref.current.getBoundingClientRect();
-    x.set((event.clientX - rect.left - rect.width / 2) * 0.18);
-    y.set((event.clientY - rect.top - rect.height / 2) * 0.28);
-  }
-
-  function handleLeave() {
-    x.set(0);
-    y.set(0);
-  }
-
   return (
-    <motion.a
-      ref={ref}
+    <a
       href={href}
-      style={{ x: springX, y: springY }}
-      onMouseMove={handleMove}
-      onMouseLeave={handleLeave}
-      className={
-        variant === "gold" ? "gold-button magnetic" : "dark-button magnetic"
-      }
+      className={variant === "gold" ? "gold-button" : "dark-button"}
     >
       {children}
-    </motion.a>
+    </a>
   );
 }
 
 function SectionHeader({ eyebrow, title, copy }) {
   return (
-    <motion.div
+    <div
       className="mx-auto mb-12 max-w-3xl text-center md:mb-16"
-      initial="hidden"
-      whileInView="visible"
-      viewport={{ once: true, amount: 0.35 }}
-      variants={fadeUp}
-      transition={{ duration: 0.75, ease: "easeOut" }}
     >
       <p className="mb-4 text-xs font-semibold uppercase tracking-[0.42em] text-amber-300/80">
         {eyebrow}
@@ -374,7 +334,7 @@ function SectionHeader({ eyebrow, title, copy }) {
       <p className="mt-5 text-base leading-8 text-stone-300 md:text-lg">
         {copy}
       </p>
-    </motion.div>
+    </div>
   );
 }
 
@@ -394,7 +354,6 @@ function App() {
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#080706] text-stone-100">
-      <Loader />
       <AtmosphericLayers />
       <Navigation />
       <Hero />
@@ -464,11 +423,10 @@ function Navigation() {
         </button>
       </nav>
 
-      <motion.div
-        className="overflow-hidden border-t border-white/10 bg-black/80 backdrop-blur-xl lg:hidden"
-        initial={false}
-        animate={{ height: open ? "auto" : 0, opacity: open ? 1 : 0 }}
-        transition={{ duration: 0.35, ease: "easeInOut" }}
+      <div
+        className={`overflow-hidden border-t border-white/10 bg-black/80 backdrop-blur-xl transition-all duration-300 lg:hidden ${
+          open ? "max-h-[520px] opacity-100" : "max-h-0 opacity-0"
+        }`}
       >
         <div className="grid gap-1 px-5 py-5">
           {navItems.map((item) => (
@@ -482,7 +440,7 @@ function Navigation() {
             </a>
           ))}
         </div>
-      </motion.div>
+      </div>
     </header>
   );
 }
@@ -512,63 +470,29 @@ function Hero() {
       <FloatingParticles />
 
       <div className="relative mx-auto flex min-h-svh max-w-7xl items-center px-5 pb-16 pt-28 sm:pt-32 lg:px-8">
-        <motion.div
-          className="max-w-4xl"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.9, delay: 1.35, ease: "easeOut" }}
-        >
-          <motion.div
-            className="hero-kicker mb-8 inline-flex max-w-full items-center gap-3 rounded-full border border-amber-300/25 bg-black/30 px-4 py-2 text-xs uppercase tracking-[0.32em] text-amber-100 backdrop-blur"
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.85, delay: 1.55, ease: "easeOut" }}
-          >
+        <div className="max-w-4xl">
+          <div className="hero-kicker mb-8 inline-flex max-w-full items-center gap-3 rounded-full border border-amber-300/25 bg-black/30 px-4 py-2 text-xs uppercase tracking-[0.32em] text-amber-100 backdrop-blur">
             <Sparkles className="h-4 w-4" />
             DIFC inspired private cafe lounge
-          </motion.div>
-          <div className="overflow-hidden">
-            <motion.h1
-              className="font-serif text-[clamp(4rem,17vw,8rem)] leading-[0.92] text-white lg:text-9xl"
-              initial={{ y: "110%" }}
-              animate={{ y: 0 }}
-              transition={{
-                duration: 1.25,
-                delay: 1.45,
-                ease: [0.16, 1, 0.3, 1],
-              }}
-            >
-              Qamar Noir
-            </motion.h1>
           </div>
-          <motion.p
-            className="mt-7 max-w-2xl text-xl leading-9 text-stone-200 md:text-2xl"
-            initial={{ opacity: 0, y: 22 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, delay: 1.85, ease: "easeOut" }}
-          >
+          <div className="overflow-hidden">
+            <h1 className="font-serif text-[clamp(4rem,17vw,8rem)] leading-[0.92] text-white lg:text-9xl">
+              Qamar Noir
+            </h1>
+          </div>
+          <p className="mt-7 max-w-2xl text-xl leading-9 text-stone-200 md:text-2xl">
             A cinematic Arabic-inspired cafe majlis crafted for Dubai founders,
             investors, and discreet business conversations.
-          </motion.p>
-          <motion.div
-            className="mt-10 flex flex-col gap-4 sm:flex-row"
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 2.05, ease: "easeOut" }}
-          >
+          </p>
+          <div className="mt-10 flex flex-col gap-4 sm:flex-row">
             <MagneticButton href="#reserve">
               Reserve a Private Table <ArrowRight className="h-5 w-5" />
             </MagneticButton>
             <MagneticButton href="#menu" variant="dark">
               Explore Menu <Coffee className="h-5 w-5" />
             </MagneticButton>
-          </motion.div>
-          <motion.div
-            className="mt-14 grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3"
-            initial={{ opacity: 0, y: 26 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.85, delay: 2.18, ease: "easeOut" }}
-          >
+          </div>
+          <div className="mt-14 grid max-w-3xl grid-cols-1 gap-4 sm:grid-cols-3">
             {["DIFC access", "Private majlis", "Open till 1 AM"].map((item) => (
               <GlassCard key={item} className="px-5 py-4">
                 <p className="hero-stat text-sm uppercase tracking-[0.28em] text-stone-400">
@@ -576,8 +500,8 @@ function Hero() {
                 </p>
               </GlassCard>
             ))}
-          </motion.div>
-        </motion.div>
+          </div>
+        </div>
       </div>
     </section>
   );
@@ -587,23 +511,14 @@ function FloatingParticles() {
   return (
     <div className="pointer-events-none absolute inset-0 overflow-hidden">
       {Array.from({ length: 18 }).map((_, index) => (
-        <motion.span
+        <span
           key={index}
-          className="absolute h-1 w-1 rounded-full bg-amber-200/55 shadow-[0_0_18px_rgba(252,211,77,0.7)]"
+          className="floating-particle absolute h-1 w-1 rounded-full bg-amber-200/55 shadow-[0_0_18px_rgba(252,211,77,0.7)]"
           style={{
             left: `${8 + ((index * 17) % 88)}%`,
             top: `${12 + ((index * 23) % 76)}%`,
-          }}
-          animate={{
-            y: [0, -28, 0],
-            opacity: [0.15, 0.75, 0.15],
-            scale: [0.75, 1.15, 0.75],
-          }}
-          transition={{
-            duration: 5 + (index % 6),
-            repeat: Infinity,
-            delay: index * 0.35,
-            ease: "easeInOut",
+            animationDuration: `${5 + (index % 6)}s`,
+            animationDelay: `${index * 0.35}s`,
           }}
         />
       ))}
@@ -616,12 +531,7 @@ function About() {
     <section id="about" className="section-pad relative">
       <div className="section-glow left-0 top-20" />
       <div className="mx-auto grid max-w-7xl gap-10 px-5 lg:grid-cols-[0.95fr_1.05fr] lg:px-8">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.25 }}
-          variants={fadeUp}
-          transition={{ duration: 0.75 }}
+        <div
         >
           <p className="eyebrow">The Concept</p>
           <div className="overflow-hidden">
@@ -630,14 +540,9 @@ function About() {
               business.
             </h2>
           </div>
-        </motion.div>
-        <motion.div
+        </div>
+        <div
           className="space-y-6 text-lg leading-9 text-stone-300"
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.25 }}
-          variants={fadeUp}
-          transition={{ duration: 0.75, delay: 0.12 }}
         >
           <p>
             Qamar Noir is a fictional luxury cafe designed for the pace of
@@ -649,7 +554,7 @@ function About() {
             geometric Arabic motifs, low cinematic light, and calm executive
             service.
           </p>
-        </motion.div>
+        </div>
       </div>
     </section>
   );
@@ -667,14 +572,9 @@ function SignatureMenu() {
         />
         <div className="grid gap-6 md:grid-cols-2">
           {signatureItems.map((item, index) => (
-            <motion.article
+            <article
               key={item.name}
               className="menu-editorial group"
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.3 }}
-              variants={fadeUp}
-              transition={{ duration: 0.65, delay: index * 0.08 }}
             >
               <div className="image-reveal menu-image">
                 <img
@@ -704,7 +604,7 @@ function SignatureMenu() {
                   {item.detail}
                 </p>
               </div>
-            </motion.article>
+            </article>
           ))}
         </div>
       </div>
@@ -716,12 +616,7 @@ function PrivateMeetings() {
   return (
     <section id="meetings" className="section-pad relative">
       <div className="mx-auto grid max-w-7xl items-center gap-10 px-5 lg:grid-cols-2 lg:px-8">
-        <motion.div
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, amount: 0.25 }}
-          variants={fadeUp}
-          transition={{ duration: 0.75 }}
+        <div
         >
           <p className="eyebrow">For Business</p>
           <div className="overflow-hidden">
@@ -747,7 +642,7 @@ function PrivateMeetings() {
               </div>
             ))}
           </div>
-        </motion.div>
+        </div>
         <GlassCard className="image-reveal relative min-h-[640px] overflow-hidden sm:min-h-[520px]">
           <img
             src={visualAssets.meeting.src}
@@ -797,15 +692,11 @@ function Ambiance() {
         />
         <div className="grid gap-5 md:grid-cols-3">
           {images.map((src, index) => (
-            <motion.div
+            <div
               key={src}
               className={`image-reveal parallax-soft relative overflow-hidden ${
                 index === 1 ? "md:mt-14" : ""
               }`}
-              initial={{ opacity: 0, scale: 0.96 }}
-              whileInView={{ opacity: 1, scale: 1 }}
-              viewport={{ once: true, amount: 0.3 }}
-              transition={{ duration: 0.7, delay: index * 0.12 }}
             >
               <img
                 src={src}
@@ -815,7 +706,7 @@ function Ambiance() {
                 className="h-[300px] w-full object-cover transition duration-700 hover:scale-105 sm:h-[420px]"
               />
               <div className="absolute inset-0 ring-1 ring-inset ring-white/10" />
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>
@@ -833,15 +724,8 @@ function Testimonials() {
           copy="Concise social proof for a high-end business audience, with a hospitality tone instead of loud marketing."
         />
         <div className="grid gap-5 lg:grid-cols-3">
-          {testimonials.map((item, index) => (
-            <motion.div
-              key={item.name}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, amount: 0.3 }}
-              variants={fadeUp}
-              transition={{ duration: 0.65, delay: index * 0.1 }}
-            >
+          {testimonials.map((item) => (
+            <div key={item.name}>
               <GlassCard className="h-full p-7 transition duration-500 hover:-translate-y-2 hover:border-amber-200/30">
                 <Quote className="h-7 w-7 text-amber-200" />
                 <p className="mt-6 leading-8 text-stone-300">"{item.quote}"</p>
@@ -855,7 +739,7 @@ function Testimonials() {
                 </p>
                 <p className="text-sm text-stone-500">{item.role}</p>
               </GlassCard>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>
@@ -961,3 +845,4 @@ function Footer() {
 }
 
 export default App;
+
