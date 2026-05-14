@@ -30,14 +30,38 @@ gsap.registerPlugin(ScrollTrigger);
 const navItems = ["About", "Menu", "Meetings", "Ambiance", "Location"];
 
 const visualAssets = {
-  hero: "/assets/qamar-hero.png",
-  meeting: "/assets/qamar-meeting.png",
-  ambiance: "/assets/qamar-ambiance.png",
-  detail: "/assets/qamar-detail.png",
-  saffronLatte: "/assets/menu-saffron-date-latte.png",
-  majlisMocha: "/assets/menu-noir-majlis-mocha.png",
-  roseCroissant: "/assets/menu-pistachio-rose-croissant.png",
-  oudTiramisu: "/assets/menu-oud-tiramisu.png",
+  hero: {
+    src: "/assets/qamar-hero-1920.webp",
+    srcSet:
+      "/assets/qamar-hero-1280.webp 1280w, /assets/qamar-hero-1920.webp 1920w",
+  },
+  meeting: {
+    src: "/assets/qamar-meeting-1280.webp",
+    srcSet:
+      "/assets/qamar-meeting-800.webp 800w, /assets/qamar-meeting-1280.webp 1280w",
+  },
+  ambiance: "/assets/qamar-ambiance-960.webp",
+  detail: "/assets/qamar-detail-960.webp",
+  saffronLatte: {
+    src: "/assets/menu-saffron-date-latte-960.webp",
+    srcSet:
+      "/assets/menu-saffron-date-latte-640.webp 640w, /assets/menu-saffron-date-latte-960.webp 960w",
+  },
+  majlisMocha: {
+    src: "/assets/menu-noir-majlis-mocha-960.webp",
+    srcSet:
+      "/assets/menu-noir-majlis-mocha-640.webp 640w, /assets/menu-noir-majlis-mocha-960.webp 960w",
+  },
+  roseCroissant: {
+    src: "/assets/menu-pistachio-rose-croissant-960.webp",
+    srcSet:
+      "/assets/menu-pistachio-rose-croissant-640.webp 640w, /assets/menu-pistachio-rose-croissant-960.webp 960w",
+  },
+  oudTiramisu: {
+    src: "/assets/menu-oud-tiramisu-960.webp",
+    srcSet:
+      "/assets/menu-oud-tiramisu-640.webp 640w, /assets/menu-oud-tiramisu-960.webp 960w",
+  },
 };
 
 const signatureItems = [
@@ -45,28 +69,32 @@ const signatureItems = [
     name: "Saffron Date Latte",
     detail: "Single-origin espresso, saffron milk, Medjool date caramel",
     price: "AED 68",
-    image: visualAssets.saffronLatte,
+    image: visualAssets.saffronLatte.src,
+    srcSet: visualAssets.saffronLatte.srcSet,
     position: "50% 50%",
   },
   {
     name: "Noir Majlis Mocha",
     detail: "Valrhona dark chocolate, cardamom, smoked sea salt",
     price: "AED 74",
-    image: visualAssets.majlisMocha,
+    image: visualAssets.majlisMocha.src,
+    srcSet: visualAssets.majlisMocha.srcSet,
     position: "50% 50%",
   },
   {
     name: "Pistachio Rose Croissant",
     detail: "French butter pastry with rose cream and Iranian pistachio",
     price: "AED 52",
-    image: visualAssets.roseCroissant,
+    image: visualAssets.roseCroissant.src,
+    srcSet: visualAssets.roseCroissant.srcSet,
     position: "50% 50%",
   },
   {
     name: "Executive Oud Tiramisu",
     detail: "Mascarpone, espresso-soaked sponge, subtle oud aroma",
     price: "AED 86",
-    image: visualAssets.oudTiramisu,
+    image: visualAssets.oudTiramisu.src,
+    srcSet: visualAssets.oudTiramisu.srcSet,
     position: "50% 50%",
   },
 ];
@@ -463,11 +491,20 @@ function Hero() {
   return (
     <section id="top" className="relative min-h-svh">
       <div
-        className="hero-media absolute inset-0 bg-cover bg-center"
-        style={{
-          backgroundImage: `linear-gradient(90deg, rgba(8,7,6,0.97) 0%, rgba(8,7,6,0.76) 42%, rgba(8,7,6,0.36) 100%), url('${visualAssets.hero}')`,
-        }}
-      />
+        className="hero-media absolute inset-0"
+        aria-hidden="true"
+      >
+        <img
+          src={visualAssets.hero.src}
+          srcSet={visualAssets.hero.srcSet}
+          sizes="100vw"
+          alt=""
+          fetchPriority="high"
+          decoding="async"
+          className="h-full w-full object-cover object-center"
+        />
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(8,7,6,0.97)_0%,rgba(8,7,6,0.76)_42%,rgba(8,7,6,0.36)_100%)]" />
+      </div>
       <div className="absolute inset-0 hero-vignette" />
       <div className="ambient-gold absolute right-[6%] top-[20%] h-72 w-72 rounded-full bg-amber-300/20 blur-[92px]" />
       <div className="smoke-layer absolute inset-0" />
@@ -642,8 +679,11 @@ function SignatureMenu() {
               <div className="image-reveal menu-image">
                 <img
                   src={item.image}
+                  srcSet={item.srcSet}
+                  sizes="(min-width: 768px) 50vw, 100vw"
                   alt={item.name}
                   loading="lazy"
+                  decoding="async"
                   style={{ objectPosition: item.position }}
                 />
                 <span className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/10 to-transparent" />
@@ -710,9 +750,12 @@ function PrivateMeetings() {
         </motion.div>
         <GlassCard className="image-reveal relative min-h-[640px] overflow-hidden sm:min-h-[520px]">
           <img
-            src={visualAssets.meeting}
+            src={visualAssets.meeting.src}
+            srcSet={visualAssets.meeting.srcSet}
+            sizes="(min-width: 1024px) 50vw, 100vw"
             alt="Luxury cafe interior with warm lighting"
             loading="lazy"
+            decoding="async"
             className="absolute inset-0 h-full w-full object-cover opacity-75"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black via-black/25 to-transparent" />
@@ -741,7 +784,7 @@ function Ambiance() {
   const images = [
     visualAssets.ambiance,
     visualAssets.detail,
-    visualAssets.meeting,
+    visualAssets.meeting.src,
   ];
 
   return (
@@ -768,6 +811,7 @@ function Ambiance() {
                 src={src}
                 alt="Premium cafe ambiance"
                 loading="lazy"
+                decoding="async"
                 className="h-[300px] w-full object-cover transition duration-700 hover:scale-105 sm:h-[420px]"
               />
               <div className="absolute inset-0 ring-1 ring-inset ring-white/10" />
