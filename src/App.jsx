@@ -307,6 +307,25 @@ function AtmosphericLayers() {
   );
 }
 
+function IntroSplash() {
+  return (
+    <div className="intro-splash fixed inset-0 z-[100] grid place-items-center bg-[#080706]">
+      <div className="absolute inset-0 arabic-pattern opacity-20" />
+      <div className="intro-mark relative text-center">
+        <div className="mx-auto mb-6 grid h-14 w-14 place-items-center rounded-full border border-amber-200/40 bg-amber-200/10">
+          <Moon className="h-7 w-7 text-amber-200" />
+        </div>
+        <p className="intro-title font-serif text-5xl text-white md:text-7xl">
+          Qamar Noir
+        </p>
+        <p className="intro-subtitle mt-4 text-xs uppercase tracking-[0.42em] text-stone-400">
+          Private Dubai Majlis
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function MagneticButton({ href, children, variant = "gold" }) {
   return (
     <a
@@ -354,6 +373,7 @@ function App() {
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#080706] text-stone-100">
+      <IntroSplash />
       <AtmosphericLayers />
       <Navigation />
       <Hero />

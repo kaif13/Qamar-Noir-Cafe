@@ -203,6 +203,28 @@ body {
     54px 54px;
 }
 
+.intro-splash {
+  pointer-events: none;
+  animation: introExit 1200ms cubic-bezier(0.76, 0, 0.24, 1) 900ms forwards;
+}
+
+.intro-mark {
+  animation: introMark 900ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.intro-title {
+  background: linear-gradient(100deg, #fff8dc 0%, #b8872c 38%, #fff3a8 52%, #ffffff 64%, #d7a94a 100%);
+  background-size: 220% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: titleShimmer 1.8s ease-in-out infinite;
+}
+
+.intro-subtitle {
+  line-height: 1.7;
+}
+
 .image-reveal {
   clip-path: inset(0 0 0 0);
   will-change: clip-path;
@@ -296,6 +318,34 @@ body {
   }
 }
 
+@keyframes introMark {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes introExit {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+@keyframes titleShimmer {
+  0%,
+  100% {
+    background-position: 0% center;
+  }
+  50% {
+    background-position: 100% center;
+  }
+}
+
 @keyframes smokeDrift {
   from {
     transform: translate3d(-2%, 1%, 0) scale(1);
@@ -340,6 +390,11 @@ body {
   }
 
   .brand-subtitle {
+    letter-spacing: 0.22em;
+  }
+
+  .intro-subtitle {
+    padding-inline: 1.25rem;
     letter-spacing: 0.22em;
   }
 
