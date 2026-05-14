@@ -298,6 +298,35 @@ function useScrollState() {
   return scrolled;
 }
 
+function useLightReveal() {
+  useEffect(() => {
+    const reduceMotion = window.matchMedia(
+      "(prefers-reduced-motion: reduce)",
+    ).matches;
+    const elements = Array.from(document.querySelectorAll(".reveal-soft"));
+
+    if (reduceMotion) {
+      elements.forEach((element) => element.classList.add("is-visible"));
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.18, rootMargin: "0px 0px -8% 0px" },
+    );
+
+    elements.forEach((element) => observer.observe(element));
+    return () => observer.disconnect();
+  }, []);
+}
+
 function AtmosphericLayers() {
   return (
     <>
@@ -339,9 +368,7 @@ function MagneticButton({ href, children, variant = "gold" }) {
 
 function SectionHeader({ eyebrow, title, copy }) {
   return (
-    <div
-      className="mx-auto mb-12 max-w-3xl text-center md:mb-16"
-    >
+    <div className="reveal-soft mx-auto mb-12 max-w-3xl text-center md:mb-16">
       <p className="mb-4 text-xs font-semibold uppercase tracking-[0.42em] text-amber-300/80">
         {eyebrow}
       </p>
@@ -370,6 +397,7 @@ function GlassCard({ children, className = "" }) {
 function App() {
   useLenisScroll();
   useGsapStorytelling();
+  useLightReveal();
 
   return (
     <main className="min-h-screen overflow-hidden bg-[#080706] text-stone-100">
@@ -551,8 +579,7 @@ function About() {
     <section id="about" className="section-pad relative">
       <div className="section-glow left-0 top-20" />
       <div className="mx-auto grid max-w-7xl gap-10 px-5 lg:grid-cols-[0.95fr_1.05fr] lg:px-8">
-        <div
-        >
+        <div className="reveal-soft">
           <p className="eyebrow">The Concept</p>
           <div className="overflow-hidden">
             <h2 className="reveal-line font-serif text-4xl leading-tight text-white md:text-6xl">
@@ -561,9 +588,7 @@ function About() {
             </h2>
           </div>
         </div>
-        <div
-          className="space-y-6 text-lg leading-9 text-stone-300"
-        >
+        <div className="reveal-soft space-y-6 text-lg leading-9 text-stone-300">
           <p>
             Qamar Noir is a fictional luxury cafe designed for the pace of
             Dubai: private enough for negotiations, warm enough for long
@@ -594,7 +619,8 @@ function SignatureMenu() {
           {signatureItems.map((item, index) => (
             <article
               key={item.name}
-              className="menu-editorial group"
+              className="reveal-soft menu-editorial group"
+              style={{ transitionDelay: `${index * 80}ms` }}
             >
               <div className="image-reveal menu-image">
                 <img
@@ -636,8 +662,7 @@ function PrivateMeetings() {
   return (
     <section id="meetings" className="section-pad relative">
       <div className="mx-auto grid max-w-7xl items-center gap-10 px-5 lg:grid-cols-2 lg:px-8">
-        <div
-        >
+        <div className="reveal-soft">
           <p className="eyebrow">For Business</p>
           <div className="overflow-hidden">
             <h2 className="reveal-line font-serif text-4xl leading-tight text-white md:text-6xl">
@@ -714,6 +739,7 @@ function Ambiance() {
           {images.map((src, index) => (
             <div
               key={src}
+              style={{ transitionDelay: `${index * 80}ms` }}
               className={`image-reveal parallax-soft relative overflow-hidden ${
                 index === 1 ? "md:mt-14" : ""
               }`}
@@ -744,8 +770,12 @@ function Testimonials() {
           copy="Concise social proof for a high-end business audience, with a hospitality tone instead of loud marketing."
         />
         <div className="grid gap-5 lg:grid-cols-3">
-          {testimonials.map((item) => (
-            <div key={item.name}>
+          {testimonials.map((item, index) => (
+            <div
+              key={item.name}
+              className="reveal-soft"
+              style={{ transitionDelay: `${index * 80}ms` }}
+            >
               <GlassCard className="h-full p-7 transition duration-500 hover:-translate-y-2 hover:border-amber-200/30">
                 <Quote className="h-7 w-7 text-amber-200" />
                 <p className="mt-6 leading-8 text-stone-300">"{item.quote}"</p>
@@ -771,7 +801,7 @@ function Location() {
   return (
     <section id="location" className="section-pad relative bg-[#0d0b09]">
       <div className="mx-auto grid max-w-7xl gap-8 px-5 lg:grid-cols-[0.85fr_1.15fr] lg:px-8">
-        <div>
+        <div className="reveal-soft">
           <p className="eyebrow">Dubai Address</p>
           <div className="overflow-hidden">
             <h2 className="reveal-line font-serif text-4xl leading-tight text-white md:text-6xl">
@@ -818,7 +848,7 @@ function Reservation() {
     <section id="reserve" className="section-pad relative">
       <div className="arabic-pattern absolute inset-0 opacity-20" />
       <div className="section-glow right-0 top-10" />
-      <div className="relative mx-auto max-w-5xl px-5 text-center lg:px-8">
+      <div className="reveal-soft relative mx-auto max-w-5xl px-5 text-center lg:px-8">
         <Gem className="mx-auto mb-6 h-10 w-10 text-amber-200" />
         <h2 className="font-serif text-5xl leading-tight text-white md:text-7xl">
           Reserve the room before the conversation begins.

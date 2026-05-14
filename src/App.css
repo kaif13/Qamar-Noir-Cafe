@@ -230,6 +230,19 @@ body {
   will-change: clip-path;
 }
 
+.reveal-soft {
+  opacity: 0;
+  transform: translateY(28px);
+  transition:
+    opacity 720ms ease,
+    transform 720ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.reveal-soft.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 .menu-editorial {
   position: relative;
   min-height: 500px;
@@ -438,6 +451,11 @@ body {
     transform: none;
   }
 
+  .reveal-soft {
+    transform: translateY(20px);
+    transition-duration: 620ms;
+  }
+
   .menu-image img {
     opacity: 0.78;
   }
@@ -465,6 +483,11 @@ body {
     animation-duration: 0.001ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
+  }
+
+  .reveal-soft {
+    opacity: 1;
+    transform: none;
   }
 }
 
