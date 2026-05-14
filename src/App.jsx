@@ -125,14 +125,30 @@ function useLenisScroll() {
   useEffect(() => {
     let lenis;
     let gsapInstance;
-    let scrollTrigger;
     let raf;
     let cancelled = false;
 
     const setup = async () => {
       const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
 
-      if (coarsePointer) return;
+      if (coarsePointer) {
+        const { default: Lenis } = await import("lenis");
+
+        if (cancelled) return;
+
+        lenis = new Lenis({
+          autoRaf: true,
+          anchors: true,
+          duration: 1.2,
+          easing: (t) => Math.min(1, 1.001 - 2 ** (-10 * t)),
+          smoothWheel: true,
+          syncTouch: true,
+          syncTouchLerp: 0.08,
+          touchMultiplier: 1.2,
+        });
+
+        return;
+      }
 
       const [{ default: Lenis }, { default: gsap }, { ScrollTrigger }] =
         await Promise.all([
@@ -145,21 +161,21 @@ function useLenisScroll() {
 
       gsap.registerPlugin(ScrollTrigger);
       gsapInstance = gsap;
-      scrollTrigger = ScrollTrigger;
       lenis = new Lenis({
-        duration: 1.15,
+        anchors: true,
+        duration: 1.25,
         easing: (t) => Math.min(1, 1.001 - 2 ** (-10 * t)),
         smoothWheel: true,
         wheelMultiplier: 0.88,
       });
 
       raf = (time) => lenis.raf(time * 1000);
-      lenis.on("scroll", scrollTrigger.update);
+      lenis.on("scroll", ScrollTrigger.update);
       gsap.ticker.add(raf);
       gsap.ticker.lagSmoothing(0);
     };
 
-    window.setTimeout(setup, 600);
+    window.setTimeout(setup, 350);
     return () => {
       cancelled = true;
       if (lenis) lenis.destroy();
