@@ -11,7 +11,6 @@ import {
   MapPin,
   Menu,
   Moon,
-  Phone,
   Quote,
   Sparkles,
   Star,
@@ -109,7 +108,7 @@ const testimonials = [
   },
   {
     quote:
-      "Our partners from London still mention the saffron latte. The website matches the real-world experience perfectly.",
+      "Our partners from London still mention the saffron latte. The service, privacy, and atmosphere were perfectly judged.",
     name: "Omar Siddiqi",
     role: "Managing Director, Gulf Ventures",
   },
@@ -131,25 +130,6 @@ function useLenisScroll() {
     const setup = async () => {
       const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
 
-      if (coarsePointer) {
-        const { default: Lenis } = await import("lenis");
-
-        if (cancelled) return;
-
-        lenis = new Lenis({
-          autoRaf: true,
-          anchors: true,
-          duration: 1.2,
-          easing: (t) => Math.min(1, 1.001 - 2 ** (-10 * t)),
-          smoothWheel: true,
-          syncTouch: true,
-          syncTouchLerp: 0.08,
-          touchMultiplier: 1.2,
-        });
-
-        return;
-      }
-
       const [{ default: Lenis }, { default: gsap }, { ScrollTrigger }] =
         await Promise.all([
           import("lenis"),
@@ -167,6 +147,10 @@ function useLenisScroll() {
         easing: (t) => Math.min(1, 1.001 - 2 ** (-10 * t)),
         smoothWheel: true,
         wheelMultiplier: 0.88,
+        syncTouch: coarsePointer,
+        syncTouchLerp: 0.075,
+        touchInertiaExponent: 1.7,
+        touchMultiplier: 1.15,
       });
 
       raf = (time) => lenis.raf(time * 1000);
@@ -189,8 +173,7 @@ function useGsapStorytelling() {
     const reduceMotion = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
-    const coarsePointer = window.matchMedia("(pointer: coarse)").matches;
-    if (reduceMotion || coarsePointer) return;
+    if (reduceMotion) return;
 
     let context;
     let cancelled = false;
@@ -379,6 +362,19 @@ function MagneticButton({ href, children, variant = "gold" }) {
     >
       {children}
     </a>
+  );
+}
+
+function WhatsAppIcon({ className = "" }) {
+  return (
+    <svg
+      className={className}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      aria-hidden="true"
+    >
+      <path d="M12.04 2C6.58 2 2.13 6.36 2.13 11.73c0 1.72.46 3.39 1.34 4.86L2 22l5.56-1.43a10.1 10.1 0 0 0 4.48 1.06c5.46 0 9.91-4.36 9.91-9.73S17.5 2 12.04 2Zm0 17.93a8.3 8.3 0 0 1-4.22-1.15l-.3-.18-3.29.84.88-3.14-.2-.32a7.94 7.94 0 0 1-1.22-4.25c0-4.43 3.75-8.03 8.35-8.03s8.35 3.6 8.35 8.03-3.75 8.2-8.35 8.2Zm4.58-6.02c-.25-.12-1.48-.72-1.71-.8-.23-.09-.4-.13-.56.12-.17.25-.65.8-.8.96-.15.17-.29.19-.54.07-.25-.13-1.06-.38-2.02-1.22-.75-.65-1.25-1.45-1.39-1.7-.15-.25-.02-.38.11-.5.11-.11.25-.29.37-.43.13-.15.17-.25.25-.42.08-.17.04-.31-.02-.44-.06-.12-.56-1.33-.77-1.82-.2-.48-.41-.41-.56-.42h-.48c-.17 0-.44.06-.67.31-.23.25-.88.85-.88 2.08s.9 2.41 1.02 2.58c.13.17 1.77 2.66 4.3 3.73.6.25 1.07.41 1.43.52.6.19 1.15.16 1.59.1.48-.07 1.48-.59 1.69-1.17.21-.57.21-1.07.15-1.17-.06-.1-.23-.16-.48-.28Z" />
+    </svg>
   );
 }
 
@@ -606,8 +602,8 @@ function About() {
         </div>
         <div className="reveal-soft space-y-6 text-lg leading-9 text-stone-300">
           <p>
-            Qamar Noir is a fictional luxury cafe designed for the pace of
-            Dubai: private enough for negotiations, warm enough for long
+            Qamar Noir is a luxury cafe shaped for the pace of Dubai: private
+            enough for negotiations, warm enough for long
             conversations, and polished enough for a premium hospitality brand.
           </p>
           <p>
@@ -749,7 +745,7 @@ function Ambiance() {
         <SectionHeader
           eyebrow="Ambiance"
           title="Low light, brushed gold, quiet ceremony"
-          copy="A portfolio-ready visual system for premium hospitality: dramatic imagery, layered glass panels, restrained motion, and confident editorial spacing."
+          copy="Settle into warm corners, soft reflections, and a calm majlis atmosphere made for long conversations over exceptional coffee."
         />
         <div className="grid gap-5 md:grid-cols-3">
           {images.map((src, index) => (
@@ -783,7 +779,7 @@ function Testimonials() {
         <SectionHeader
           eyebrow="Client Notes"
           title="Designed for people whose meetings matter"
-          copy="Concise social proof for a high-end business audience, with a hospitality tone instead of loud marketing."
+          copy="From private briefings to unhurried evening conversations, every visit is handled with discretion, warmth, and quiet precision."
         />
         <div className="grid gap-5 lg:grid-cols-3">
           {testimonials.map((item, index) => (
@@ -849,8 +845,9 @@ function Location() {
               DIFC District
             </h3>
             <p className="mt-4 leading-8 text-stone-300">
-              A refined map-style panel placeholder that keeps the page premium
-              without relying on a backend map API.
+              Arrive through Gate Avenue, step away from the city rush, and
+              settle into a quieter address for coffee, meetings, and late
+              conversations.
             </p>
           </div>
         </GlassCard>
@@ -870,12 +867,12 @@ function Reservation() {
           Reserve the room before the conversation begins.
         </h2>
         <p className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-stone-300">
-          Dummy reservation flow for a portfolio website: polished CTAs, clear
-          business positioning, and no backend dependency.
+          Share your preferred date, time, and guest count, and our concierge
+          team will confirm the finest available table.
         </p>
         <div className="mt-10 flex flex-col justify-center gap-4 sm:flex-row">
-          <MagneticButton href="tel:+971000000000">
-            <Phone className="h-5 w-5" /> Call Concierge
+          <MagneticButton href="https://wa.me/971000000000?text=Hello%20Qamar%20Noir%2C%20I%20would%20like%20to%20reserve%20a%20table.">
+            <WhatsAppIcon className="h-5 w-5" /> WhatsApp Reservation
           </MagneticButton>
           <MagneticButton
             href="mailto:reserve@qamarnoir.example"
@@ -895,7 +892,7 @@ function Footer() {
       <div className="mx-auto flex max-w-7xl flex-col justify-between gap-6 text-sm text-stone-500 md:flex-row md:items-center">
         <p className="font-serif text-2xl text-white">Qamar Noir</p>
         <p>
-          Qamar Noir luxury hospitality showcase by{" "}
+          Qamar Noir luxury hospitality experience by{" "}
           <a
             className="text-amber-200"
             href="https://kaifwebstudio.in"
